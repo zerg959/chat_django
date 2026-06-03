@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "corsheaders",
+    "chat.apps.ChatConfig",
 ]
 
 # Allow connection between Vue and Django

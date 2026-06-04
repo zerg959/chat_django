@@ -4,7 +4,7 @@ import UserAuth from '../views/UserAuth.vue'
 
 const routes = [
   {
-    path: '/chats',
+    path: '/chats/:uri?',  // uri теперь опциональный параметр
     name: 'Chat',
     component: Chat,
     meta: { requiresAuth: true }
@@ -25,10 +25,8 @@ const router = createRouter({
   routes
 })
 
-// Guard для проверки авторизации
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('authToken')
-  
   if (to.meta.requiresAuth && !token) {
     next('/auth')
   } else if (to.path === '/auth' && token) {

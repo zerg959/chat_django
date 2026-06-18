@@ -3,9 +3,9 @@
     <div class="row justify-content-center">
       <div class="col-sm-8 col-md-6">
         
-        <!-- Экран чата -->
+        <!-- Chat screen -->
         <div v-if="sessionStarted" id="chat-container" class="card shadow">
-          <!-- Шапка чата -->
+          <!-- Chat header -->
           <div class="card-header text-white subtle-blue-gradient">
             <div class="d-flex justify-content-between align-items-center mb-2">
               <div class="small">
@@ -31,7 +31,7 @@
             </div>
           </div>
 
-          <!-- Поле для подключения к другому чату -->
+          <!-- Other chat connection field -->
           <div class="card-header bg-light border-bottom">
             <div class="input-group input-group-sm">
               <input
@@ -54,7 +54,7 @@
             </div>
           </div>
 
-          <!-- Тело чата с сообщениями -->
+          <!-- Chat body with messages -->
           <div class="card-body p-0">
             <div class="chat-body p-3">
               <div v-if="messages.length === 0" class="text-center text-muted mt-4">
@@ -62,33 +62,33 @@
               </div>
 
               <div 
-                v-for="(message, index) in messages" 
+                v-for="(msg, index) in messages" 
                 :key="index" 
                 class="row chat-section"
               >
-                <!-- Сообщения ДРУГИХ пользователей (слева) -->
-                <template v-if="username !== message.user.username">
+                <!-- OTHER users messages (left side) -->
+                <template v-if="username !== msg.user.username">
                   <div class="col-sm-2">
                     <div 
                       class="avatar-circle"
-                      :style="{ backgroundColor: getUserColor(message.user.username) }"
+                      :style="{ backgroundColor: getUserColor(msg.user.username) }"
                     >
-                      {{ message.user.username[0].toUpperCase() }}
+                      {{ msg.user.username[0].toUpperCase() }}
                     </div>
                   </div>
                   <div class="col-sm-7">
                     <span class="speech-bubble speech-bubble-peer">
-                      <strong class="d-block mb-1 text-primary">{{ message.user.username }}</strong>
-                      {{ message.message }}
+                      <strong class="d-block mb-1 text-primary">{{ msg.user.username }}</strong>
+                      {{ msg.message }}
                     </span>
                   </div>
                 </template>
 
-                <!-- Сообщения ТЕКУЩЕГО пользователя (справа) -->
+                <!-- CURRENT user messages (right side) -->
                 <template v-else>
                   <div class="col-sm-7 offset-3">
                     <span class="speech-bubble speech-bubble-user text-white subtle-blue-gradient">
-                      {{ message.message }}
+                      {{ msg.message }}
                     </span>
                   </div>
                   <div class="col-sm-2">
@@ -104,7 +104,7 @@
             </div>
           </div>
 
-          <!-- Поле ввода сообщения -->
+          <!-- Message field -->
           <div class="card-footer">
             <form @submit.prevent="postMessage">
               <div class="row g-2">
@@ -191,378 +191,26 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import axios from 'axios'
+import { useChat } from '../composables/useChat'
+import '../styles/Chat.css'
 
-const route = useRoute()
-const router = useRouter()
-
-const API_URL = 'http://127.0.0.1:8000'
-const WS_URL = 'ws://127.0.0.1:8000'
-
-// Состояние
-const sessionStarted = ref(false)
-const username = ref('')
-const messages = ref([])
-const message = ref('')
-const messageError = ref('')
-const startError = ref('')
-const connectError = ref('')
-const joinUriInput = ref('')
-const wsConnectionStatus = ref('disconnected')
-
-let websocket = null
-
-// URI чата из URL
-const chatUri = computed(() => route.params.uri || null)
-const chatUrl = computed(() => {
-  const uri = chatUri.value || '...'
-  return `${window.location.origin}/chats/${uri}`
-})
-
-// Цвет аватара
-const getUserColor = (name) => {
-  if (!name) return '#6c757d'
-  const colors = ['#007bff', '#f16000', '#28a745', '#dc3545', '#6f42c1', '#fd7e14', '#20c997', '#e83e8c']
-  let hash = 0
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash)
-  }
-  return colors[Math.abs(hash) % colors.length]
-}
-
-const getAuthHeaders = () => ({
-  Authorization: `Token ${localStorage.getItem('authToken')}`,
-  'Content-Type': 'application/json',
-})
-
-// Получение текущего пользователя
-const fetchCurrentUser = async () => {
-  try {
-    const token = localStorage.getItem('authToken')
-    if (!token) return null
-    const response = await axios.get(`${API_URL}/auth/users/me/`, {
-      headers: { Authorization: `Token ${token}` }
-    })
-    username.value = response.data.username
-    localStorage.setItem('username', username.value)
-    return username.value
-  } catch (err) {
-    console.error('Failed to fetch user:', err)
-    return null
-  }
-}
-
-// === WebSocket ===
-const connectWebSocket = (uri) => {
-  if (!uri) return
-  
-  if (websocket) {
-    websocket.close()
-  }
-  
-  const token = localStorage.getItem('authToken')
-  const wsUrl = `${WS_URL}/ws/chat/${uri}/?token=${token}`
-  
-  console.log('🔌 Connecting to WebSocket:', wsUrl)
-  
-  websocket = new WebSocket(wsUrl)
-  
-  websocket.onopen = () => {
-    console.log('✅ WebSocket connected!')
-    wsConnectionStatus.value = 'connected'
-  }
-  
-  websocket.onclose = () => {
-    console.log('❌ WebSocket disconnected')
-    wsConnectionStatus.value = 'disconnected'
-    setTimeout(() => {
-      if (chatUri.value) connectWebSocket(chatUri.value)
-    }, 3000)
-  }
-  
-  websocket.onmessage = (event) => {
-    const data = JSON.parse(event.data)
-    console.log('📨 WebSocket message:', data)
-    
-    if (data.type === 'chat_message') {
-      const exists = messages.value.some(
-        m => m.message === data.message.message && 
-             m.user?.username === data.message.user?.username
-      )
-      if (!exists) {
-        messages.value.push(data.message)
-      }
-    }
-  }
-  
-  websocket.onerror = (error) => {
-    console.error('❌ WebSocket error:', error)
-  }
-}
-
-const sendWebSocketMessage = (msg) => {
-  if (websocket && websocket.readyState === WebSocket.OPEN) {
-    websocket.send(JSON.stringify({ message: msg }))
-    return true
-  }
-  return false
-}
-
-// Выход
-const logout = async () => {
-  if (websocket) websocket.close()
-  try {
-    const token = localStorage.getItem('authToken')
-    if (token) {
-      await axios.post(`${API_URL}/auth/token/logout/`, {}, {
-        headers: { Authorization: `Token ${token}` }
-      })
-    }
-  } catch (err) {
-    console.error(err)
-  } finally {
-    localStorage.removeItem('authToken')
-    localStorage.removeItem('username')
-    router.push('/auth')
-  }
-}
-
-// Создание чата
-const startChatSession = async () => {
-  startError.value = ''
-  try {
-    const response = await axios.post(
-      `${API_URL}/api/chats/`,
-      {},
-      { headers: getAuthHeaders() }
-    )
-    const uri = response.data.uri
-    sessionStarted.value = true
-    router.push(`/chats/${uri}/`)
-  } catch (err) {
-    startError.value = err.response?.data?.detail || 'Failed to create chat'
-  }
-}
-
-// Подключение к чату по ссылке
-const connectToChat = async () => {
-  if (!joinUriInput.value.trim()) {
-    connectError.value = 'Please enter a chat URL or URI'
-    return
-  }
-  connectError.value = ''
-  
-  let uri = joinUriInput.value.trim()
-  if (uri.includes('/chats/')) {
-    const match = uri.match(/\/chats\/([a-zA-Z0-9]+)/)
-    if (match) uri = match[1]
-  }
-  
-  if (!username.value) {
-    connectError.value = 'Username not found. Please login again.'
-    return
-  }
-  
-  router.push(`/chats/${uri}/`)
-  joinUriInput.value = ''
-}
-
-// Присоединение к чату
-const joinChatSession = async () => {
-  const uri = chatUri.value
-  if (!uri) return
-  
-  if (!username.value) {
-    messageError.value = 'Username not found. Please login again.'
-    return
-  }
-  
-  try {
-    const response = await axios.patch(
-      `${API_URL}/api/chats/${uri}/`,
-      { username: username.value },
-      { headers: getAuthHeaders() }
-    )
-    
-    const user = response.data.members.find(
-      (member) => member.username === username.value
-    )
-    
-    if (user) {
-      sessionStarted.value = true
-      await fetchChatSessionHistory()
-      connectWebSocket(uri)
-    }
-  } catch (err) {
-    console.error('Error joining chat:', err)
-    messageError.value = 'Failed to join chat session'
-  }
-}
-
-// Загрузка истории
-const fetchChatSessionHistory = async () => {
-  const uri = chatUri.value
-  if (!uri) return
-  
-  try {
-    const response = await axios.get(
-      `${API_URL}/api/chats/${uri}/messages/`,
-      { headers: getAuthHeaders() }
-    )
-    messages.value = response.data.messages || []
-  } catch (err) {
-    console.error('Error fetching history:', err)
-  }
-}
-
-// Отправка сообщения
-const postMessage = async () => {
-  if (!message.value.trim()) return
-  messageError.value = ''
-  
-  const sent = sendWebSocketMessage(message.value)
-  
-  if (sent) {
-    message.value = ''
-  } else {
-    const uri = chatUri.value
-    if (!uri) return
-    
-    try {
-      const response = await axios.post(
-        `${API_URL}/api/chats/${uri}/messages/`,
-        { message: message.value },
-        { headers: getAuthHeaders() }
-      )
-      messages.value.push(response.data)
-      message.value = ''
-    } catch (err) {
-      messageError.value = err.response?.data?.detail || 'Failed to send message'
-    }
-  }
-}
-
-const copyUrl = () => {
-  navigator.clipboard.writeText(chatUrl.value)
-    .then(() => alert('✅ URL copied!'))
-    .catch(() => alert('❌ Failed to copy'))
-}
-
-// Watcher для URI
-watch(chatUri, async (newUri) => {
-  if (newUri && username.value) {
-    await joinChatSession()
-  }
-})
-
-onMounted(async () => {
-  if (!username.value) {
-    await fetchCurrentUser()
-  }
-  
-  if (chatUri.value && username.value) {
-    await joinChatSession()
-  }
-})
-
-onUnmounted(() => {
-  if (websocket) websocket.close()
-})
+// import logic from composable
+const {
+  sessionStarted,
+  username,
+  messages,
+  message,
+  messageError,
+  startError,
+  connectError,
+  joinUriInput,
+  wsConnectionStatus,
+  chatUrl,
+  getUserColor,
+  logout,
+  startChatSession,
+  connectToChat,
+  postMessage,
+  copyUrl,
+} = useChat()
 </script>
-
-<style scoped>
-.card {
-  border-radius: 0.5rem;
-  overflow: hidden;
-}
-
-.subtle-blue-gradient {
-  background: linear-gradient(45deg, #004bff, #007bff);
-}
-
-.chat-body {
-  height: 400px;
-  overflow-y: auto;
-  background-color: #f8f9fa;
-}
-
-.chat-section {
-  margin-bottom: 15px;
-}
-
-.chat-section:first-child {
-  margin-top: 10px;
-}
-
-.avatar-circle {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: bold;
-  font-size: 16px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-.speech-bubble {
-  display: inline-block;
-  position: relative;
-  border-radius: 0.5rem;
-  padding: 10px 14px;
-  background-color: #fff;
-  font-size: 14px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-  max-width: 100%;
-  word-wrap: break-word;
-}
-
-.speech-bubble-user {
-  border-bottom-right-radius: 0;
-}
-
-.speech-bubble-peer {
-  border-bottom-left-radius: 0;
-}
-
-.speech-bubble-user::after {
-  content: "";
-  position: absolute;
-  right: -10px;
-  top: 10px;
-  width: 0;
-  height: 0;
-  border: 10px solid transparent;
-  border-left-color: #007bff;
-  border-right: 0;
-  border-top: 0;
-  margin-top: -5px;
-}
-
-.speech-bubble-peer::after {
-  content: "";
-  position: absolute;
-  left: -10px;
-  top: 10px;
-  width: 0;
-  height: 0;
-  border: 10px solid transparent;
-  border-right-color: #fff;
-  border-top: 0;
-  border-left: 0;
-  margin-top: -5px;
-}
-
-.card-footer input[type="text"] {
-  padding: 8px 12px;
-  font-size: 14px;
-}
-
-code {
-  font-family: 'Courier New', monospace;
-}
-</style>

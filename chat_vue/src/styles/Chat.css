@@ -1,0 +1,101 @@
+/* Main cointainer */
+.card {
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+  
+  /* Header gradient */
+  .subtle-blue-gradient {
+    background: linear-gradient(45deg, #004bff, #007bff);
+  }
+  
+  /* Chat body */
+  .chat-body {
+    height: 400px;
+    overflow-y: auto;
+    background-color: #f8f9fa;
+  }
+  
+  /* Messages section */
+  .chat-section {
+    margin-bottom: 15px;
+  }
+  
+  .chat-section:first-child {
+    margin-top: 10px;
+  }
+  
+  /* Avatars */
+  .avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+  
+  /* Speech bubbles */
+  .speech-bubble {
+    display: inline-block;
+    position: relative;
+    border-radius: 0.5rem;
+    padding: 10px 14px;
+    background-color: #fff;
+    font-size: 14px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    max-width: 100%;
+    word-wrap: break-word;
+  }
+  
+  .speech-bubble-user {
+    border-bottom-right-radius: 0;
+  }
+  
+  .speech-bubble-peer {
+    border-bottom-left-radius: 0;
+  }
+  
+  /* Bubbles tails */
+  .speech-bubble-user::after {
+    content: "";
+    position: absolute;
+    right: -10px;
+    top: 10px;
+    width: 0;
+    height: 0;
+    border: 10px solid transparent;
+    border-left-color: #007bff;
+    border-right: 0;
+    border-top: 0;
+    margin-top: -5px;
+  }
+  
+  .speech-bubble-peer::after {
+    content: "";
+    position: absolute;
+    left: -10px;
+    top: 10px;
+    width: 0;
+    height: 0;
+    border: 10px solid transparent;
+    border-right-color: #fff;
+    border-top: 0;
+    border-left: 0;
+    margin-top: -5px;
+  }
+  
+  /* Input field */
+  .card-footer input[type="text"] {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+  
+  /* URL вin header */
+  code {
+    font-family: 'Courier New', monospace;
+  }

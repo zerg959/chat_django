@@ -1,5 +1,3 @@
-
-
 <template>
   <div class="container">
     <div class="row justify-content-center">
@@ -13,9 +11,15 @@
               <div class="small">
                 📢 Share this URL to invite friends
               </div>
-              <button class="btn btn-sm btn-outline-light" @click="logout">
-                🚪 Logout
-              </button>
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge" 
+                      :class="wsConnectionStatus === 'connected' ? 'bg-success' : 'bg-warning'">
+                  {{ wsConnectionStatus === 'connected' ? '● Live' : '○ Connecting...' }}
+                </span>
+                <button class="btn btn-sm btn-outline-light" @click="logout">
+                  🚪 Logout
+                </button>
+              </div>
             </div>
             <div class="d-flex align-items-center gap-2">
               <code class="bg-white text-dark px-2 py-1 rounded flex-grow-1" style="font-size: 0.75rem;">
@@ -195,6 +199,7 @@ const route = useRoute()
 const router = useRouter()
 
 const API_URL = 'http://127.0.0.1:8000'
+const WS_URL = 'ws://127.0.0.1:8000'
 
 // Состояние
 const sessionStarted = ref(false)
@@ -205,24 +210,21 @@ const messageError = ref('')
 const startError = ref('')
 const connectError = ref('')
 const joinUriInput = ref('')
-let pollInterval = null
+const wsConnectionStatus = ref('disconnected')
+
+let websocket = null
 
 // URI чата из URL
 const chatUri = computed(() => route.params.uri || null)
-
-// URL для шаринга
 const chatUrl = computed(() => {
   const uri = chatUri.value || '...'
   return `${window.location.origin}/chats/${uri}`
 })
 
-// Цвет аватара на основе username
+// Цвет аватара
 const getUserColor = (name) => {
   if (!name) return '#6c757d'
-  const colors = [
-    '#007bff', '#f16000', '#28a745', '#dc3545', 
-    '#6f42c1', '#fd7e14', '#20c997', '#e83e8c'
-  ]
+  const colors = ['#007bff', '#f16000', '#28a745', '#dc3545', '#6f42c1', '#fd7e14', '#20c997', '#e83e8c']
   let hash = 0
   for (let i = 0; i < name.length; i++) {
     hash = name.charCodeAt(i) + ((hash << 5) - hash)
@@ -230,34 +232,87 @@ const getUserColor = (name) => {
   return colors[Math.abs(hash) % colors.length]
 }
 
-// Заголовки авторизации
 const getAuthHeaders = () => ({
   Authorization: `Token ${localStorage.getItem('authToken')}`,
   'Content-Type': 'application/json',
 })
 
-// Получение текущего пользователя из API
+// Получение текущего пользователя
 const fetchCurrentUser = async () => {
   try {
     const token = localStorage.getItem('authToken')
     if (!token) return null
-
     const response = await axios.get(`${API_URL}/auth/users/me/`, {
       headers: { Authorization: `Token ${token}` }
     })
-    
-    const currentUser = response.data.username
-    username.value = currentUser
-    localStorage.setItem('username', currentUser)
-    return currentUser
+    username.value = response.data.username
+    localStorage.setItem('username', username.value)
+    return username.value
   } catch (err) {
-    console.error('Failed to fetch current user:', err)
+    console.error('Failed to fetch user:', err)
     return null
   }
 }
 
+// === WebSocket ===
+const connectWebSocket = (uri) => {
+  if (!uri) return
+  
+  if (websocket) {
+    websocket.close()
+  }
+  
+  const token = localStorage.getItem('authToken')
+  const wsUrl = `${WS_URL}/ws/chat/${uri}/?token=${token}`
+  
+  console.log('🔌 Connecting to WebSocket:', wsUrl)
+  
+  websocket = new WebSocket(wsUrl)
+  
+  websocket.onopen = () => {
+    console.log('✅ WebSocket connected!')
+    wsConnectionStatus.value = 'connected'
+  }
+  
+  websocket.onclose = () => {
+    console.log('❌ WebSocket disconnected')
+    wsConnectionStatus.value = 'disconnected'
+    setTimeout(() => {
+      if (chatUri.value) connectWebSocket(chatUri.value)
+    }, 3000)
+  }
+  
+  websocket.onmessage = (event) => {
+    const data = JSON.parse(event.data)
+    console.log('📨 WebSocket message:', data)
+    
+    if (data.type === 'chat_message') {
+      const exists = messages.value.some(
+        m => m.message === data.message.message && 
+             m.user?.username === data.message.user?.username
+      )
+      if (!exists) {
+        messages.value.push(data.message)
+      }
+    }
+  }
+  
+  websocket.onerror = (error) => {
+    console.error('❌ WebSocket error:', error)
+  }
+}
+
+const sendWebSocketMessage = (msg) => {
+  if (websocket && websocket.readyState === WebSocket.OPEN) {
+    websocket.send(JSON.stringify({ message: msg }))
+    return true
+  }
+  return false
+}
+
 // Выход
 const logout = async () => {
+  if (websocket) websocket.close()
   try {
     const token = localStorage.getItem('authToken')
     if (token) {
@@ -266,7 +321,7 @@ const logout = async () => {
       })
     }
   } catch (err) {
-    console.error('Logout error:', err)
+    console.error(err)
   } finally {
     localStorage.removeItem('authToken')
     localStorage.removeItem('username')
@@ -274,7 +329,7 @@ const logout = async () => {
   }
 }
 
-// Создание нового чата
+// Создание чата
 const startChatSession = async () => {
   startError.value = ''
   try {
@@ -291,23 +346,18 @@ const startChatSession = async () => {
   }
 }
 
-// Подключение к чату по введенному URI
+// Подключение к чату по ссылке
 const connectToChat = async () => {
   if (!joinUriInput.value.trim()) {
     connectError.value = 'Please enter a chat URL or URI'
     return
   }
-
   connectError.value = ''
   
   let uri = joinUriInput.value.trim()
-  
-  // Извлекаем URI из полной ссылки
   if (uri.includes('/chats/')) {
     const match = uri.match(/\/chats\/([a-zA-Z0-9]+)/)
-    if (match) {
-      uri = match[1]
-    }
+    if (match) uri = match[1]
   }
   
   if (!username.value) {
@@ -343,6 +393,7 @@ const joinChatSession = async () => {
     if (user) {
       sessionStarted.value = true
       await fetchChatSessionHistory()
+      connectWebSocket(uri)
     }
   } catch (err) {
     console.error('Error joining chat:', err)
@@ -350,7 +401,7 @@ const joinChatSession = async () => {
   }
 }
 
-// Загрузка истории сообщений
+// Загрузка истории
 const fetchChatSessionHistory = async () => {
   const uri = chatUri.value
   if (!uri) return
@@ -371,41 +422,40 @@ const postMessage = async () => {
   if (!message.value.trim()) return
   messageError.value = ''
   
-  const uri = chatUri.value
-  if (!uri) return
+  const sent = sendWebSocketMessage(message.value)
   
-  try {
-    const response = await axios.post(
-      `${API_URL}/api/chats/${uri}/messages/`,
-      { message: message.value },
-      { headers: getAuthHeaders() }
-    )
-    messages.value.push(response.data)
+  if (sent) {
     message.value = ''
-  } catch (err) {
-    messageError.value = err.response?.data?.detail || 'Failed to send message'
+  } else {
+    const uri = chatUri.value
+    if (!uri) return
+    
+    try {
+      const response = await axios.post(
+        `${API_URL}/api/chats/${uri}/messages/`,
+        { message: message.value },
+        { headers: getAuthHeaders() }
+      )
+      messages.value.push(response.data)
+      message.value = ''
+    } catch (err) {
+      messageError.value = err.response?.data?.detail || 'Failed to send message'
+    }
   }
 }
 
-// Копирование URL
 const copyUrl = () => {
   navigator.clipboard.writeText(chatUrl.value)
     .then(() => alert('✅ URL copied!'))
     .catch(() => alert('❌ Failed to copy'))
 }
 
-// Polling каждые 3 секунды
-const startPolling = () => {
-  pollInterval = setInterval(() => {
-    if (chatUri.value && sessionStarted.value) {
-      fetchChatSessionHistory()
-    }
-  }, 3000)
-}
-
-const stopPolling = () => {
-  if (pollInterval) clearInterval(pollInterval)
-}
+// Watcher для URI
+watch(chatUri, async (newUri) => {
+  if (newUri && username.value) {
+    await joinChatSession()
+  }
+})
 
 onMounted(async () => {
   if (!username.value) {
@@ -415,18 +465,10 @@ onMounted(async () => {
   if (chatUri.value && username.value) {
     await joinChatSession()
   }
-  startPolling()
-})
-
-watch(chatUri, async (newUri) => {
-  console.log('🔗 Chat URI changed to:', newUri)
-  if (newUri && username.value) {
-    await joinChatSession()
-  }
 })
 
 onUnmounted(() => {
-  stopPolling()
+  if (websocket) websocket.close()
 })
 </script>
 

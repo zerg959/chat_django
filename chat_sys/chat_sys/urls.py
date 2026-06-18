@@ -7,4 +7,3 @@ urlpatterns = [
     path("auth/", include("djoser.urls.authtoken")),
     path('api/', include('chat.urls')),
 ]
-# ZOPAZOPA2

@@ -28,3 +28,9 @@ coverage
 *.sw?
 
 *.tsbuildinfo
+.gitignore
+.vscode/
+.idea/
+*.log
+.env
+.env.local

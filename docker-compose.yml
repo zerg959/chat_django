@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  django:
+    build:
+      context: ./chat_sys
+      dockerfile: Dockerfile
+    container_name: chat_django
+    ports:
+      - "8000:8000"
+    environment:
+      - DJANGO_SECRET_KEY=your-secret-key-change-this-in-production
+      - DJANGO_DEBUG=False
+      - DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,www.hub959.ru,hub959.ru,109.68.212.60
+      - CORS_ALLOWED_ORIGINS=http://localhost,http://127.0.0.1,http://localhost:80,http://hub959.ru,http://www.hub959.ru,http://109.68.212.60,https://hub959.ru,https://www.hub959.ru
+      - CSRF_TRUSTED_ORIGINS=http://localhost,http://127.0.0.1,http://localhost:80,http://hub959.ru,http://www.hub959.ru,http://109.68.212.60,https://hub959.ru,https://www.hub959.ru
+      - REDIS_HOST=redis
+    depends_on:
+      - redis
+    volumes:
+      - django_static:/app/staticfiles
+      - django_db:/app
+    restart: unless-stopped
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             daphne -b 0.0.0.0 -p 8000 chat_sys.asgi:application"
+
+  vue:
+    build:
+      context: ./chat_vue
+      dockerfile: Dockerfile
+    container_name: chat_vue
+    ports:
+      - "80:80"
+    depends_on:
+      - django
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+  django_static:
+  django_db:

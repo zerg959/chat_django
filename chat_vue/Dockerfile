@@ -9,12 +9,15 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-# Stage 2: Serve with nginx
-FROM nginx:alpine AS production-stage
+# Stage 2: Serve with Caddy
+FROM caddy:2-alpine AS production-stage
 
-COPY --from=build-stage /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Копируем собранные файлы Vue
+COPY --from=build-stage /app/dist /usr/share/caddy
 
-EXPOSE 80
+# Копируем Caddyfile
+COPY Caddyfile /etc/caddy/Caddyfile
 
-CMD ["nginx", "-g", "daemon off;"]
+EXPOSE 80 443
+
+CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile"]

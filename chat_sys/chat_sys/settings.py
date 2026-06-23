@@ -52,6 +52,19 @@ INSTALLED_APPS = [
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://hub959.ru",
+    "http://hub959.ru",
+    "https://109.68.212.60",
+    "http://109.68.212.60",
+
+]
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",  # Обязательно для preflight
+    "PATCH",    # Обязательно для вашего случая
+    "POST",
+    "PUT",
 ]
 
 MIDDLEWARE = [

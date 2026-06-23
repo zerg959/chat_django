@@ -1,0 +1,43 @@
+# Git и метаданные
+.git/
+.gitignore
+.dockerignore
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Артефакты сборки
+dist/
+coverage/
+*.lcov
+
+# IDE и ОС
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Настройки разработки
+.env
+.env.local
+.env.*.local
+
+# Минифицированные файлы (если не нужны в образе)
+*.min.js
+*.min.css
+
+# Лог-файлы
+*.log
+
+# Конфигурации разработки
+Caddyfile.local.example
+
+# Резервные копии
+*.bak
+*.backup
+
+# Временные файлы
+*.tmp

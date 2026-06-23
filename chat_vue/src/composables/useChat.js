@@ -6,9 +6,10 @@ export function useChat() {
   const route = useRoute()
   const router = useRouter()
 
-  const API_URL = 'http://127.0.0.1:8000'
-  const WS_URL = 'ws://127.0.0.1:8000'
-
+  // const API_URL = 'http://127.0.0.1:8000'
+  // const WS_URL = 'ws://127.0.0.1:8000'
+  const API_URL = ''
+  const WS_URL = ''
   // Condition
   const sessionStarted = ref(false)
   const username = ref('')
@@ -45,12 +46,12 @@ export function useChat() {
     'Content-Type': 'application/json',
   })
 
-  // ПExtracting current user
+  // Extracting current user
   const fetchCurrentUser = async () => {
     try {
       const token = localStorage.getItem('authToken')
       if (!token) return null
-      const response = await axios.get(`${API_URL}/auth/users/me/`, {
+      const response = await axios.get(`/auth/users/me/`, {
         headers: { Authorization: `Token ${token}` }
       })
       username.value = response.data.username
@@ -71,7 +72,8 @@ export function useChat() {
     }
 
     const token = localStorage.getItem('authToken')
-    const wsUrl = `${WS_URL}/ws/chat/${uri}/?token=${token}`
+    const protocol = window.location.protocol === 'https' ? 'wss' : 'ws'
+    const wsUrl = `${protocol}//${window.Location.host}ws/chat/${uri}/?token=${token}`
 
     console.log(' Connecting to WebSocket:', wsUrl)
 
@@ -124,7 +126,7 @@ export function useChat() {
     try {
       const token = localStorage.getItem('authToken')
       if (token) {
-        await axios.post(`${API_URL}/auth/token/logout/`, {}, {
+        await axios.post(`/auth/token/logout/`, {}, {
           headers: { Authorization: `Token ${token}` }
         })
       }
@@ -142,7 +144,7 @@ export function useChat() {
     startError.value = ''
     try {
       const response = await axios.post(
-        `${API_URL}/api/chats/`,
+        `/api/chats/`,
         {},
         { headers: getAuthHeaders() }
       )
@@ -189,7 +191,7 @@ export function useChat() {
 
     try {
       const response = await axios.patch(
-        `${API_URL}/api/chats/${uri}/`,
+        `$/api/chats/${uri}/`,
         { username: username.value },
         { headers: getAuthHeaders() }
       )
@@ -216,7 +218,7 @@ export function useChat() {
 
     try {
       const response = await axios.get(
-        `${API_URL}/api/chats/${uri}/messages/`,
+        `$/api/chats/${uri}/messages/`,
         { headers: getAuthHeaders() }
       )
       messages.value = response.data.messages || []
@@ -240,7 +242,7 @@ export function useChat() {
 
       try {
         const response = await axios.post(
-          `${API_URL}/api/chats/${uri}/messages/`,
+          `$api/chats/${uri}/messages/`,
           { message: message.value },
           { headers: getAuthHeaders() }
         )

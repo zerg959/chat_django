@@ -17,3 +17,5 @@ pika
 
 # takes Django and extends its abilities beyond HTTP - to handle WebSockets, chat protocols, IoT protocols, 
 types-channels
+python_dotenv
+daphne

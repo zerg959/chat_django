@@ -127,14 +127,14 @@ const signinForm = reactive({
 const handleSignup = async () => {
   try {
     error.value = ''
-    await axios.post('http://127.0.0.1:8000/auth/users/', {
+    await axios.post('/auth/users/', {
       username: signupForm.username,
       password: signupForm.password,
       re_password: signupForm.re_password
     })
     
     // Автоматически входим с теми же данными
-    const loginResponse = await axios.post('http://127.0.0.1:8000/auth/token/login/', {
+    const loginResponse = await axios.post('/auth/token/login/', {
       username: signupForm.username,
       password: signupForm.password
     })
@@ -150,7 +150,7 @@ const handleSignup = async () => {
 const handleSignin = async () => {
   try {
     error.value = ''
-    const response = await axios.post('http://127.0.0.1:8000/auth/token/login/', {
+    const response = await axios.post('/auth/token/login/', {
       username: signinForm.username,
       password: signinForm.password
     })

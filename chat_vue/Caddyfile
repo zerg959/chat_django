@@ -1,30 +1,19 @@
 hub959.ru, www.hub959.ru {
-    # Автоматический HTTPS от Let's Encrypt
-    # Caddy сам получит и обновит сертификат
-    
-    # Раздаём статические файлы Vue
-    root * /usr/share/caddy
-    file_server
-    
-    # Vue Router history mode - все запросы идут на index.html
-    try_files {path} /index.html
-    
-    # Проксируем API на Django
-    reverse_proxy /api/* django:8000
-    
-    # Проксируем авторизацию на Django
-    reverse_proxy /auth/* django:8000
-    
-    # Проксируем WebSocket на Django
-    reverse_proxy /ws/* django:8000 {
-        transport http {
-            keepalive 30s
-        }
+    # Static files and Vue Router history mode
+    handle {
+        root * /usr/share/caddy
+        try_files {path} /index.html
+        file_server
     }
-    
-    # Логи
-    log {
-        output stdout
-        format console
+
+    # Proxy API to Django
+    handle /api/* {
+        reverse_proxy django:8000
     }
-}
+
+    # Proxy auth to Django
+    handle /auth/* {
+        reverse_proxy django:8000
+    }
+
+    # Proxy WebSocket

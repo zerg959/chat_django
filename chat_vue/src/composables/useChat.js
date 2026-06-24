@@ -5,12 +5,11 @@ import axios from 'axios'
 export function useChat() {
   const route = useRoute()
   const router = useRouter()
-
-  // const API_URL = 'http://127.0.0.1:8000'
-  // const WS_URL = 'ws://127.0.0.1:8000'
+ 
   const API_URL = ''
   const WS_URL = ''
-  // Condition
+
+  // Состояние
   const sessionStarted = ref(false)
   const username = ref('')
   const messages = ref([])
@@ -23,14 +22,14 @@ export function useChat() {
 
   let websocket = null
 
-  // chat-URI from URL
+  // chat-URI из URL
   const chatUri = computed(() => route.params.uri || null)
   const chatUrl = computed(() => {
     const uri = chatUri.value || '...'
     return `${window.location.origin}/chats/${uri}`
   })
 
-  // Avatar color
+  // Цвет аватара
   const getUserColor = (name) => {
     if (!name) return '#6c757d'
     const colors = ['#007bff', '#f16000', '#28a745', '#dc3545', '#6f42c1', '#fd7e14', '#20c997', '#e83e8c']
@@ -42,18 +41,20 @@ export function useChat() {
   }
 
   const getAuthHeaders = () => ({
-    Authorization: `Token ${localStorage.getItem('authToken')}`,
+    Authorization: `Token \${localStorage.getItem('authToken')}`,
     'Content-Type': 'application/json',
   })
 
-  // Extracting current user
+  // Получение текущего пользователя
   const fetchCurrentUser = async () => {
     try {
       const token = localStorage.getItem('authToken')
       if (!token) return null
+      
       const response = await axios.get(`/auth/users/me/`, {
-        headers: { Authorization: `Token ${token}` }
+        headers: { Authorization: `Token \${token}` }
       })
+      
       username.value = response.data.username
       localStorage.setItem('username', username.value)
       return username.value
@@ -72,10 +73,11 @@ export function useChat() {
     }
 
     const token = localStorage.getItem('authToken')
-    const protocol = window.location.protocol === 'https' ? 'wss' : 'ws'
-    const wsUrl = `${protocol}//${window.Location.host}ws/chat/${uri}/?token=${token}`
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
 
-    console.log(' Connecting to WebSocket:', wsUrl)
+    const wsUrl = `${protocol}//${window.location.host}/ws/chat/${uri}/?token=${token}`
+
+    console.log('Connecting to WebSocket:', wsUrl)
 
     websocket = new WebSocket(wsUrl)
 
@@ -120,14 +122,14 @@ export function useChat() {
     return false
   }
 
-  // Выход
+  // Выход из системы
   const logout = async () => {
     if (websocket) websocket.close()
     try {
       const token = localStorage.getItem('authToken')
       if (token) {
         await axios.post(`/auth/token/logout/`, {}, {
-          headers: { Authorization: `Token ${token}` }
+          headers: { Authorization: `Token \${token}` }
         })
       }
     } catch (err) {
@@ -139,7 +141,7 @@ export function useChat() {
     }
   }
 
-  // Create chat
+  // Создание чата
   const startChatSession = async () => {
     startError.value = ''
     try {
@@ -150,13 +152,13 @@ export function useChat() {
       )
       const uri = response.data.uri
       sessionStarted.value = true
-      router.push(`/chats/${uri}/`)
+      router.push(`/chats/\${uri}/`)
     } catch (err) {
       startError.value = err.response?.data?.detail || 'Failed to create chat'
     }
   }
 
-  // Connect to chat by link
+  // Подключение к чату по ссылке
   const connectToChat = async () => {
     if (!joinUriInput.value.trim()) {
       connectError.value = 'Please enter a chat URL or URI'
@@ -167,7 +169,7 @@ export function useChat() {
     let uri = joinUriInput.value.trim()
     if (uri.includes('/chats/')) {
       const match = uri.match(/\/chats\/([a-zA-Z0-9]+)/)
-      if (match) uri = match[1]
+      if (match) uri = match
     }
 
     if (!username.value) {
@@ -175,11 +177,11 @@ export function useChat() {
       return
     }
 
-    router.push(`/chats/${uri}/`)
+    router.push(`/chats/\${uri}/`)
     joinUriInput.value = ''
   }
 
-  // Connect to chat
+  // Подключение к сессии чата (PATCH)
   const joinChatSession = async () => {
     const uri = chatUri.value
     if (!uri) return
@@ -191,7 +193,7 @@ export function useChat() {
 
     try {
       const response = await axios.patch(
-        `$/api/chats/${uri}/`,
+        `/api/chats/\${uri}/`,
         { username: username.value },
         { headers: getAuthHeaders() }
       )
@@ -211,14 +213,14 @@ export function useChat() {
     }
   }
 
-  // History load
+  // Загрузка истории сообщений
   const fetchChatSessionHistory = async () => {
     const uri = chatUri.value
     if (!uri) return
 
     try {
       const response = await axios.get(
-        `$/api/chats/${uri}/messages/`,
+        `/api/chats/\${uri}/messages/`,
         { headers: getAuthHeaders() }
       )
       messages.value = response.data.messages || []
@@ -227,7 +229,7 @@ export function useChat() {
     }
   }
 
-  // Sent message
+  // Отправка сообщения
   const postMessage = async () => {
     if (!message.value.trim()) return
     messageError.value = ''
@@ -242,7 +244,7 @@ export function useChat() {
 
       try {
         const response = await axios.post(
-          `$api/chats/${uri}/messages/`,
+          `/api/chats/\${uri}/messages/`,
           { message: message.value },
           { headers: getAuthHeaders() }
         )
@@ -260,7 +262,7 @@ export function useChat() {
       .catch(() => alert('❌ Failed to copy'))
   }
 
-  // Watcher for URI
+  // Watcher для URI
   watch(chatUri, async (newUri) => {
     if (newUri && username.value) {
       await joinChatSession()
@@ -282,7 +284,7 @@ export function useChat() {
   })
 
   return {
-    // Condition
+    // Состояние
     sessionStarted,
     username,
     messages,
@@ -295,7 +297,7 @@ export function useChat() {
     chatUri,
     chatUrl,
 
-    // Methods
+    // Методы
     getUserColor,
     logout,
     startChatSession,

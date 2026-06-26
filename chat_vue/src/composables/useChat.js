@@ -5,9 +5,6 @@ import axios from 'axios'
 export function useChat() {
   const route = useRoute()
   const router = useRouter()
- 
-  const API_URL = ''
-  const WS_URL = ''
 
   // Состояние
   const sessionStarted = ref(false)
@@ -41,7 +38,7 @@ export function useChat() {
   }
 
   const getAuthHeaders = () => ({
-    Authorization: `Token \${localStorage.getItem('authToken')}`,
+    Authorization: `Token ${localStorage.getItem('authToken')}`,
     'Content-Type': 'application/json',
   })
 
@@ -52,7 +49,7 @@ export function useChat() {
       if (!token) return null
       
       const response = await axios.get(`/auth/users/me/`, {
-        headers: { Authorization: `Token \${token}` }
+        headers: { Authorization: `Token ${token}` }
       })
       
       username.value = response.data.username
@@ -74,11 +71,9 @@ export function useChat() {
 
     const token = localStorage.getItem('authToken')
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-
     const wsUrl = `${protocol}//${window.location.host}/ws/chat/${uri}/?token=${token}`
 
     console.log('Connecting to WebSocket:', wsUrl)
-
     websocket = new WebSocket(wsUrl)
 
     websocket.onopen = () => {
@@ -89,9 +84,15 @@ export function useChat() {
     websocket.onclose = () => {
       console.log('❌ WebSocket disconnected')
       wsConnectionStatus.value = 'disconnected'
-      setTimeout(() => {
-        if (chatUri.value) connectWebSocket(chatUri.value)
-      }, 3000)
+      
+      // Переподключение только если мы на странице чата
+      if (chatUri.value && websocket.readyState !== WebSocket.CLOSING) {
+        setTimeout(() => {
+          if (chatUri.value) {
+            connectWebSocket(chatUri.value)
+          }
+        }, 5000)
+      }
     }
 
     websocket.onmessage = (event) => {
@@ -129,7 +130,7 @@ export function useChat() {
       const token = localStorage.getItem('authToken')
       if (token) {
         await axios.post(`/auth/token/logout/`, {}, {
-          headers: { Authorization: `Token \${token}` }
+          headers: { Authorization: `Token ${token}` }
         })
       }
     } catch (err) {
@@ -152,7 +153,7 @@ export function useChat() {
       )
       const uri = response.data.uri
       sessionStarted.value = true
-      router.push(`/chats/\${uri}/`)
+      router.push(`/chats/${uri}/`)
     } catch (err) {
       startError.value = err.response?.data?.detail || 'Failed to create chat'
     }
@@ -169,7 +170,7 @@ export function useChat() {
     let uri = joinUriInput.value.trim()
     if (uri.includes('/chats/')) {
       const match = uri.match(/\/chats\/([a-zA-Z0-9]+)/)
-      if (match) uri = match
+      if (match) uri = match[1]
     }
 
     if (!username.value) {
@@ -177,7 +178,7 @@ export function useChat() {
       return
     }
 
-    router.push(`/chats/\${uri}/`)
+    router.push(`/chats/${uri}/`)
     joinUriInput.value = ''
   }
 
@@ -193,7 +194,7 @@ export function useChat() {
 
     try {
       const response = await axios.patch(
-        `/api/chats/\${uri}/`,
+        `/api/chats/${uri}/`,
         { username: username.value },
         { headers: getAuthHeaders() }
       )
@@ -220,7 +221,7 @@ export function useChat() {
 
     try {
       const response = await axios.get(
-        `/api/chats/\${uri}/messages/`,
+        `/api/chats/${uri}/messages/`,
         { headers: getAuthHeaders() }
       )
       messages.value = response.data.messages || []
@@ -234,6 +235,11 @@ export function useChat() {
     if (!message.value.trim()) return
     messageError.value = ''
 
+    if (!websocket || websocket.readyState !== WebSocket.OPEN) {
+      messageError.value = 'Connecting to chat... Please wait.'
+      return
+    }
+
     const sent = sendWebSocketMessage(message.value)
 
     if (sent) {
@@ -244,7 +250,7 @@ export function useChat() {
 
       try {
         const response = await axios.post(
-          `/api/chats/\${uri}/messages/`,
+          `/api/chats/${uri}/messages/`,
           { message: message.value },
           { headers: getAuthHeaders() }
         )
@@ -284,7 +290,6 @@ export function useChat() {
   })
 
   return {
-    // Состояние
     sessionStarted,
     username,
     messages,
@@ -296,8 +301,6 @@ export function useChat() {
     wsConnectionStatus,
     chatUri,
     chatUrl,
-
-    // Методы
     getUserColor,
     logout,
     startChatSession,

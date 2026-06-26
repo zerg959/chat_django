@@ -12,10 +12,7 @@ RUN npm run build
 # Stage 2: Serve with Caddy
 FROM caddy:2-alpine AS production-stage
 
-# Копируем собранные файлы Vue
 COPY --from=build-stage /app/dist /usr/share/caddy
-
-# Копируем Caddyfile
 COPY Caddyfile /etc/caddy/Caddyfile
 
 EXPOSE 80 443

@@ -1,19 +1,75 @@
-hub959.ru, www.hub959.ru {
-    # Static files and Vue Router history mode
-    handle {
-        root * /usr/share/caddy
-        try_files {path} /index.html
-        file_server
-    }
-
-    # Proxy API to Django
+http://localhost, http://127.0.0.1 {
+    root * /usr/share/caddy
+    
+    # API — сохраняем полный путь
     handle /api/* {
         reverse_proxy django:8000
     }
-
-    # Proxy auth to Django
+    
+    # Аутентификация — сохраняем полный путь
     handle /auth/* {
         reverse_proxy django:8000
     }
+    
+    # WebSocket — сохраняем полный путь
+    handle /ws/* {
+        reverse_proxy django:8000
+    }
 
-    # Proxy WebSocket
+    handle /ws/* {
+        reverse_proxy django:8000 {
+            transport http {
+                keepalive 30s
+                keepalive_idle_conns 100
+                keepalive_idle_conns_per_host 100
+            }
+        }
+    }
+    
+    # Всё остальное — Vue SPA
+    handle {
+        try_files {path} /index.html
+        file_server
+    }
+    
+    log {
+        output stdout
+        format console
+    }
+}
+# Production — HTTPS (автоматические SSL сертификаты от Let's Encrypt)
+# hub959.ru, www.hub959.ru, 109.68.212.60 {
+#    root * /usr/share/caddy
+    
+    # API — сохраняем полный путь
+#    handle /api/* {
+#        reverse_proxy django:8000
+#    }
+    
+    # Аутентификация — сохраняем полный путь
+#    handle /auth/* {
+#        reverse_proxy django:8000
+#    }
+    
+    # WebSocket — с keepalive для стабильного соединения
+#    handle /ws/* {
+#        reverse_proxy django:8000 {
+#            transport http {
+#                keepalive 30s
+#                keepalive_idle_conns 100
+#                keepalive_idle_conns_per_host 100
+#            }
+#        }
+#    }
+    
+    # Всё остальное — Vue SPA
+#    handle {
+#        try_files {path} /index.html
+#        file_server
+#    }
+    
+#    log {
+#        output stdout
+#        format console
+#    }
+# }

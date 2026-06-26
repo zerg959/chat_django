@@ -9,6 +9,7 @@ django-cors-headers
 # asyn 
 django-notifs
 channels
+channels_redis
 
 # As AMQP is a two-way RPC protocol where the /
 # client can send requests to the server and /

@@ -43,6 +43,7 @@ services:
     container_name: chat_vue
     ports:
       - "80:80"
+#      - "443:443" production
     depends_on:
       - django
     restart: unless-stopped

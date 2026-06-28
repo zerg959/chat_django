@@ -19,14 +19,14 @@ export function useChat() {
 
   let websocket = null
 
-  // chat-URI из URL
+  // chat-URI from URL
   const chatUri = computed(() => route.params.uri || null)
   const chatUrl = computed(() => {
     const uri = chatUri.value || '...'
     return `${window.location.origin}/chats/${uri}`
   })
 
-  // Цвет аватара
+  // Avatar color
   const getUserColor = (name) => {
     if (!name) return '#6c757d'
     const colors = ['#007bff', '#f16000', '#28a745', '#dc3545', '#6f42c1', '#fd7e14', '#20c997', '#e83e8c']
@@ -42,7 +42,7 @@ export function useChat() {
     'Content-Type': 'application/json',
   })
 
-  // Получение текущего пользователя
+  // Getting current user
   const fetchCurrentUser = async () => {
     try {
       const token = localStorage.getItem('authToken')
@@ -85,7 +85,7 @@ export function useChat() {
       console.log('❌ WebSocket disconnected')
       wsConnectionStatus.value = 'disconnected'
       
-      // Переподключение только если мы на странице чата
+      // Reconnecting if we are on the chat page only
       if (chatUri.value && websocket.readyState !== WebSocket.CLOSING) {
         setTimeout(() => {
           if (chatUri.value) {
@@ -123,7 +123,7 @@ export function useChat() {
     return false
   }
 
-  // Выход из системы
+  // Logging out
   const logout = async () => {
     if (websocket) websocket.close()
     try {
@@ -142,7 +142,7 @@ export function useChat() {
     }
   }
 
-  // Создание чата
+  // Chat creating
   const startChatSession = async () => {
     startError.value = ''
     try {
@@ -159,7 +159,7 @@ export function useChat() {
     }
   }
 
-  // Подключение к чату по ссылке
+  // Connect to chat by chat-link
   const connectToChat = async () => {
     if (!joinUriInput.value.trim()) {
       connectError.value = 'Please enter a chat URL or URI'
@@ -182,7 +182,7 @@ export function useChat() {
     joinUriInput.value = ''
   }
 
-  // Подключение к сессии чата (PATCH)
+  // Connection to chat-session (PATCH)
   const joinChatSession = async () => {
     const uri = chatUri.value
     if (!uri) return
@@ -214,7 +214,7 @@ export function useChat() {
     }
   }
 
-  // Загрузка истории сообщений
+  // Loading chat history
   const fetchChatSessionHistory = async () => {
     const uri = chatUri.value
     if (!uri) return
@@ -230,7 +230,7 @@ export function useChat() {
     }
   }
 
-  // Отправка сообщения
+  // Sending message
   const postMessage = async () => {
     if (!message.value.trim()) return
     messageError.value = ''
@@ -268,7 +268,7 @@ export function useChat() {
       .catch(() => alert('❌ Failed to copy'))
   }
 
-  // Watcher для URI
+  // Watcher for URI
   watch(chatUri, async (newUri) => {
     if (newUri && username.value) {
       await joinChatSession()

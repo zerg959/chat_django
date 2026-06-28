@@ -1,3 +1,4 @@
+# DEV-mode settings
 # http://localhost, http://127.0.0.1 {
 #     root * /usr/share/caddy
     
@@ -37,6 +38,7 @@
 #         format console
 #     }
 # }
+
 # Production — HTTPS ( SSL Let's Encrypt)
 hub959.ru, www.hub959.ru, 109.68.212.60 {
    root * /usr/share/caddy

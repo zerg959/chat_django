@@ -4,7 +4,7 @@ import UserAuth from '../views/UserAuth.vue'
 
 const routes = [
   {
-    path: '/chats/:uri?',  // uri теперь опциональный параметр
+    path: '/chats/:uri?',  // uri optional param
     name: 'Chat',
     component: Chat,
     meta: { requiresAuth: true }

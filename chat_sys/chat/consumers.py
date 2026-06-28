@@ -7,7 +7,7 @@ from .models import ChatSession, ChatSessionMessage
 
 @database_sync_to_async
 def get_user_from_token(token_key):
-    """Получить пользователя по токену (синхронная функция)."""
+    """Getting user by Token (Sync function)."""
     from rest_framework.authtoken.models import Token
     try:
         token_obj = Token.objects.get(key=token_key)
@@ -27,7 +27,7 @@ def get_chat_session(uri):
 
 @database_sync_to_async
 def create_message(user, chat_session, message):
-    """Создать сообщение в БД."""
+    """Create message in DB."""
     return ChatSessionMessage.objects.create(
         user=user,
         chat_session=chat_session,
@@ -37,11 +37,11 @@ def create_message(user, chat_session, message):
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        # Получаем URI чата из URL
+        # Takes chat-URI from URL
         self.uri = self.scope['url_route']['kwargs']['uri']
         self.room_group_name = f'chat_{self.uri}'
         
-        # Аутентификация через токен в query string
+        # Authentication by token in query string
         query_string = self.scope.get('query_string', b'').decode()
         token = None
         for param in query_string.split('&'):
@@ -50,7 +50,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 break
         
         if token:
-            # Вызываем асинхронную функцию для получения пользователя
+            '''Call async function to get user'''
             self.user = await get_user_from_token(token)
             if not self.user:
                 print("❌ Token not found or invalid")
@@ -61,7 +61,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.close()
             return
         
-        # Присоединяемся к группе чата
+        # Connect to chat
         await self.channel_layer.group_add(
             self.room_group_name,
             self.channel_name
@@ -72,14 +72,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         print(f"❌ WebSocket disconnected: {self.uri}")
-        # Покидаем группу
+        # Logout chat
         await self.channel_layer.group_discard(
             self.room_group_name,
             self.channel_name
         )
 
     async def receive(self, text_data):
-        """Получение сообщения от клиента."""
+        """Getting message from client."""
         try:
             data = json.loads(text_data)
             message = data.get('message', '')
@@ -87,16 +87,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
             if not message:
                 return
             
-            # Получаем чат-сессию
+            # Getting chat-session
             chat_session = await get_chat_session(self.uri)
             if not chat_session:
                 print(f"❌ Chat session not found: {self.uri}")
                 return
             
-            # Сохраняем сообщение в БД
+            # Save message un DB
             await create_message(self.user, chat_session, message)
             
-            # Отправляем сообщение всем в группе
+            # Sent message to chat users
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
@@ -111,7 +111,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             print(f"Error receiving message: {e}")
 
     async def chat_message(self, event):
-        """Отправка сообщения клиенту."""
+        """Sent meddsge to client."""
         await self.send(text_data=json.dumps({
             'type': 'chat_message',
             'message': event['message']

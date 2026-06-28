@@ -17,7 +17,7 @@ class ChatSessionView(APIView):
         user = request.user
         chat_session = ChatSession.objects.create(owner=user)
         
-        # ВАЖНО: Сразу добавляем владельца в members!
+        # IMPORTANT! ADD OWNER INTO CHAT immediatly!
         ChatSessionMember.objects.create(user=user, chat_session=chat_session)
         
         return Response({
@@ -47,17 +47,17 @@ class ChatSessionView(APIView):
 
         owner = chat_session.owner
 
-        # Если пользователь не владелец — добавляем его в members
+        # If user != owner — add him to members
         if owner != user:
             ChatSessionMember.objects.get_or_create(
                 user=user, chat_session=chat_session
             )
 
-        # Собираем всех участников
+        # Collect all chat members
         member_objects = ChatSessionMember.objects.filter(chat_session=chat_session)
         members = [deserialize_user(member.user) for member in member_objects]
 
-        # Добавляем владельца в начало, если его нет в members
+        # Add owner at first if he is not a member
         owner_data = deserialize_user(owner)
         member_usernames = [m['username'] for m in members]
         if owner.username not in member_usernames:

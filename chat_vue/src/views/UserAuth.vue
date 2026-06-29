@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <div class="text-center mt-5">
-      <h1>Welcome to Chatire!</h1>
+      <h1>Welcome to Chat!</h1>
     </div>
     
     <div class="row justify-content-center mt-4">
@@ -133,7 +133,7 @@ const handleSignup = async () => {
       re_password: signupForm.re_password
     })
     
-    // Автоматически входим с теми же данными
+    // Automatically login with the same auth data
     const loginResponse = await axios.post('/auth/token/login/', {
       username: signupForm.username,
       password: signupForm.password
@@ -155,10 +155,10 @@ const handleSignin = async () => {
       password: signinForm.password
     })
     
-    // Сохраняем токен
+    // Save token
     localStorage.setItem('authToken', response.data.auth_token)
     
-    // Переходим к чату
+    // Move on to chat
     router.push('/chats')
   } catch (err) {
     error.value = err.response?.data?.detail || 'Login failed'
@@ -168,5 +168,5 @@ const handleSignin = async () => {
 </script>
 
 <style scoped>
-/* Дополнительные стили если нужны */
+/* Extra styles */
 </style>

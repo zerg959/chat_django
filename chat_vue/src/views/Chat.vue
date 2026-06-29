@@ -130,7 +130,7 @@
           </div>
         </div>
 
-        <!-- Стартовый экран -->
+        <!-- Start screen -->
         <div v-else class="card shadow text-center py-5">
           <h3 class="text-center mb-3">Welcome, {{ username || 'User' }}! 👋</h3>
           

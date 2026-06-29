@@ -6,7 +6,7 @@ export function useChat() {
   const route = useRoute()
   const router = useRouter()
 
-  // Состояние
+  // Condition
   const sessionStarted = ref(false)
   const username = ref('')
   const messages = ref([])

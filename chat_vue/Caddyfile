@@ -40,7 +40,7 @@
 # }
 
 # Production — HTTPS ( SSL Let's Encrypt)
-hub959.ru, www.hub959.ru, 109.68.212.60 {
+hub959.ru, www.hub959.ru, 109.68.212.60 {  # USE your domain or ip
    root * /usr/share/caddy
     
 #    API 

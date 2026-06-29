@@ -12,14 +12,16 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Важно для Qlty
 
-      - name: Install and run Qlty
+      - name: Install Qlty
         run: |
-          # 1. Скачиваем и устанавливаем CLI
           curl https://qlty.sh/install.sh | sh
-          
-          # 2. Добавляем путь к бинарнику в PATH
-          export PATH="$HOME/.qlty/bin:$PATH"
-          
-          # 3. Запускаем анализ с указанием конфигурации
-          qlty check --config qlty.toml
+          echo "$HOME/.qlty/bin" >> $GITHUB_PATH
+
+      - name: Run Qlty check
+        run: |
+          qlty check
+        env:
+          QLTY_TOKEN: ${{ secrets.QLTY_COVERAGE_TOKEN }}  # Если используете Qlty Cloud

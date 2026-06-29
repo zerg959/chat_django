@@ -1,0 +1,22 @@
+[settings]
+# Code sniffer (Maintainability)
+smells = true
+
+[plugins]
+# For Vue (JS/TS) — ESLint
+eslint = { enabled = true }
+# For Django (Python) — Ruff
+ruff = { enabled = true }
+
+[exclude]
+# iggnore env folders
+paths = [
+  "dist/",
+  "build/",
+  "node_modules/",
+  "venv/",
+  ".venv/",
+  "staticfiles/",
+  "**/tests/",
+  "**/__tests__/"
+]

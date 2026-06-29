@@ -18,8 +18,8 @@ jobs:
           # 1. Скачиваем и устанавливаем CLI
           curl https://qlty.sh/install.sh | sh
           
-          # 2. Добавляем путь к бинарнику в PATH для текущей сессии
+          # 2. Добавляем путь к бинарнику в PATH
           export PATH="$HOME/.qlty/bin:$PATH"
           
-          # 3. Запускаем анализ
-          qlty check
+          # 3. Запускаем анализ с указанием конфигурации
+          qlty check --config qlty.toml

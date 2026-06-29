@@ -1,15 +1,15 @@
-# django-chat
+# Django Chat
 
 [![Maintainability](https://qlty.sh/gh/zerg959/projects/chat_django/maintainability.png)](https://qlty.sh/gh/zerg959/projects/chat_django)
 
-**Real-time Web Chat**
+## Real-time Web Chat
 
 **GitHub:** `https://github.com/zerg959/chat_django`
 
-**Descriptiom:**
+### Description:
 Online real-time web-chat with unique session-id.
-Every chat has unique URI. Only users with chat-link can be added there.
-
+Every chat has unique URI. Only users with chat-link can be added there.<br>
+**[Demo - video](https://disk.yandex.ru/d/_Kq9fHMiT8TzRw)**<br>
 **Stack:**
 - Djoser-auth + Token
 - Chats, users and messages REST API
@@ -18,7 +18,7 @@ Every chat has unique URI. Only users with chat-link can be added there.
 - Caddy Reverse proxy with HTTPS
 - Docker Containerization (Docker Compose, Django + Vue + Redis)
 
-### Techical data
+### Technical data
 
 | Parameter              | Data                                                            |
 |------------------------|-----------------------------------------------------------------|
@@ -36,9 +36,36 @@ Every chat has unique URI. Only users with chat-link can be added there.
 | Test login2            | `testuser456`                                                   |
 | Test pass2             | `@123Qwe123`                                                    |
 
-**Local deploy**
+### Local deploy:
+- install Docker Compose Plugin
+```bash
+sudo apt-get update
+sudo apt-get install docker-compose-plugin
+```
+- clone repo into your local computer
+```bash
+git clone git@github.com:zerg959/chat_django.git
+```
+- go to created directory
+```bash
+cd chat_django
+```
+- copy `.env.example` and create `.env` with your own environment variables
+```bash
+cp .env.example .env
+```
+- build app from docker compose file
+```bash
+docker compose build
+```
+- run Docker containers
+```bash
+docker compose up -d
+```
+- Application will be available on http://localhost or 0.0.0.0
+- For production mode you had to change commented settings in `.env`, `Caddyfile` and `docker-compose.yml`<br>
 
-**Data flow:**
+### Data flow:
 
 1. **Statics:** Caddy share collected static to Vue SPA from `/usr/share/caddy`
 2. **API:** Requests `/api/*` and `/auth/*` are proxied by Caddy → Django (port 8000)

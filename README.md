@@ -1,7 +1,7 @@
-# Chatire (django-chat)
+# django-chat
 
 [![Maintainability](https://qlty.sh/gh/zerg959/projects/chat_django/maintainability.png)](https://qlty.sh/gh/zerg959/projects/chat_django)
-### Main
+
 **Real-time Web Chat**
 
 **GitHub:** `https://github.com/zerg959/chat_django`

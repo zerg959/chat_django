@@ -13,5 +13,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install Qlty CLI
+        # Скачиваем и устанавливаем CLI прямо в раннере
+        run: curl https://qlty.sh/install.sh | sh
+
       - name: Run Qlty analysis
-        uses: qlty/action@v1
+        # Запускаем анализ. 
+        # Флаг --fail-on-issues можно добавить, если хотите, чтобы пайплайн падал при ошибках
+        run: qlty check

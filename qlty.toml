@@ -1,22 +1,29 @@
 [settings]
-# Code sniffer (Maintainability)
 smells = true
 
-[plugins]
-# For Vue (JS/TS) — ESLint
-eslint = { enabled = true }
-# For Django (Python) — Ruff
-ruff = { enabled = true }
+# Настройка для Vue (JavaScript/TypeScript)
+[[plugin]]
+name = "eslint"
+enabled = true
+prefix = "chat_vue"
+package_file = "chat_vue/package.json"
+
+# Настройка для Django (Python)
+[[plugin]]
+name = "ruff"
+enabled = true
+prefix = "chat_sys"
+# Ruff обычно сам находит pyproject.toml или ruff.toml в папке проекта.
+# Если у вас нет этих файлов в chat_sys, Ruff будет использовать настройки по умолчанию.
 
 [exclude]
-# iggnore env folders
 paths = [
-  "dist/",
-  "build/",
-  "node_modules/",
-  "venv/",
-  ".venv/",
-  "staticfiles/",
+  "chat_vue/dist/",
+  "chat_vue/node_modules/",
+  "chat_sys/venv/",
+  "chat_sys/.venv/",
+  "chat_sys/staticfiles/",
   "**/tests/",
-  "**/__tests__/"
+  "**/__tests__/",
+  "chat_sys/migrations/"
 ]

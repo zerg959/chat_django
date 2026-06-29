@@ -13,11 +13,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Qlty CLI
-        # Скачиваем и устанавливаем CLI прямо в раннере
-        run: curl https://qlty.sh/install.sh | sh
-
-      - name: Run Qlty analysis
-        # Запускаем анализ. 
-        # Флаг --fail-on-issues можно добавить, если хотите, чтобы пайплайн падал при ошибках
-        run: qlty check
+      - name: Install and run Qlty
+        run: |
+          # 1. Скачиваем и устанавливаем CLI
+          curl https://qlty.sh/install.sh | sh
+          
+          # 2. Добавляем путь к бинарнику в PATH для текущей сессии
+          export PATH="$HOME/.qlty/bin:$PATH"
+          
+          # 3. Запускаем анализ
+          qlty check

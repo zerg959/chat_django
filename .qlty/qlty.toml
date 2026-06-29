@@ -1,21 +1,8 @@
+# Базовые настройки
 [settings]
 smells = true
 
-# Настройка для Vue (JavaScript/TypeScript)
-[[plugin]]
-name = "eslint"
-enabled = true
-prefix = "chat_vue"
-package_file = "chat_vue/package.json"
-
-# Настройка для Django (Python)
-[[plugin]]
-name = "ruff"
-enabled = true
-prefix = "chat_sys"
-# Ruff обычно сам находит pyproject.toml или ruff.toml в папке проекта.
-# Если у вас нет этих файлов в chat_sys, Ruff будет использовать настройки по умолчанию.
-
+# Исключаемые пути
 [exclude]
 paths = [
   "chat_vue/dist/",
@@ -27,3 +14,14 @@ paths = [
   "**/__tests__/",
   "chat_sys/migrations/"
 ]
+
+# Плагины для анализа
+[[analyzer]]
+name = "eslint"
+enabled = true
+directory = "chat_vue"
+
+[[analyzer]]
+name = "ruff"
+enabled = true
+directory = "chat_sys"

@@ -13,7 +13,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Важно для Qlty
+          fetch-depth: 0  # Qlty
 
       - name: Install Qlty
         run: |
@@ -24,4 +24,4 @@ jobs:
         run: |
           qlty check
         env:
-          QLTY_TOKEN: ${{ secrets.QLTY_COVERAGE_TOKEN }}  # Если используете Qlty Cloud
+          QLTY_TOKEN: ${{ secrets.QLTY_COVERAGE_TOKEN }}

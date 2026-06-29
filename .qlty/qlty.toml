@@ -2,19 +2,6 @@
 [settings]
 smells = true
 
-# Исключаемые пути
-[exclude]
-paths = [
-  "chat_vue/dist/",
-  "chat_vue/node_modules/",
-  "chat_sys/venv/",
-  "chat_sys/.venv/",
-  "chat_sys/staticfiles/",
-  "**/tests/",
-  "**/__tests__/",
-  "chat_sys/migrations/"
-]
-
 # Плагины для анализа
 [[analyzer]]
 name = "eslint"
@@ -25,3 +12,15 @@ directory = "chat_vue"
 name = "ruff"
 enabled = true
 directory = "chat_sys"
+
+# Исключаемые пути (ПРЯМОЙ МАССИВ, не объект!)
+exclude = [
+  "chat_vue/dist/",
+  "chat_vue/node_modules/",
+  "chat_sys/venv/",
+  "chat_sys/.venv/",
+  "chat_sys/staticfiles/",
+  "**/tests/",
+  "**/__tests__/",
+  "chat_sys/migrations/"
+]

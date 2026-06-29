@@ -36,6 +36,8 @@ Every chat has unique URI. Only users with chat-link can be added there.
 | Test login2            | `testuser456`                                                   |
 | Test pass2             | `@123Qwe123`                                                    |
 
+**Local deploy**
+
 **Data flow:**
 
 1. **Statics:** Caddy share collected static to Vue SPA from `/usr/share/caddy`

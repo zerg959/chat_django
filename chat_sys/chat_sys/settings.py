@@ -10,8 +10,8 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-dev-key-change-in-production')
-# DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True' dev-option
-DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True' #  dev-option
+# DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True' # prod-option
 ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 INSTALLED_APPS = [
@@ -148,7 +148,10 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-# STATICFILES_DIRS = [
-#     os.path.join(BASE_DIR, 'static'),
-# ]
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+import logging
+logger = logging.getLogger(__name__)
+logger.warning("DEBUG: CHANNEL_LAYER_BACKEND = %r", CHANNEL_LAYER_BACKEND)
+logger.warning("DEBUG: CHANNEL_LAYERS backend = %r", CHANNEL_LAYERS["default"]["BACKEND"])

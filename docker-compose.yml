@@ -1,11 +1,11 @@
 services:
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6380:6379"
-    volumes:
-      - redis_data:/data
-    restart: unless-stopped
+  # redis: # uncomment in production
+  #   image: redis:7-alpine
+  #   ports:
+  #     - "6380:6379"
+  #   volumes:
+  #     - redis_data:/data
+  #   restart: unless-stopped
 
   django:
     build:
@@ -22,11 +22,11 @@ services:
       - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
       - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
       - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS}
-      - REDIS_HOST=${REDIS_HOST:-redis}
-      - REDIS_PORT=${REDIS_PORT:-6379}
-      - CHANNEL_LAYER_BACKEND=redis
-    depends_on:
-      - redis
+      # - REDIS_HOST=${REDIS_HOST:-redis} # prod mode
+      # - REDIS_PORT=${REDIS_PORT:-6379} # prod
+      - CHANNEL_LAYER_BACKEND=${CHANNEL_LAYER_BACKEND}
+    # depends_on: # prod 
+    #   - redis # prod
     volumes:
       - django_static:/app/staticfiles
       - django_db:/app
@@ -43,7 +43,7 @@ services:
     container_name: chat_vue
     ports:
       - "80:80"
-#      - "443:443" production
+#      - "443:443" # production setting
     depends_on:
       - django
     restart: unless-stopped

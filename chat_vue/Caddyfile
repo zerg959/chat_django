@@ -1,77 +1,77 @@
 # DEV-mode settings
-# http://localhost, http://127.0.0.1 {
-#     root * /usr/share/caddy
+http://localhost, http://127.0.0.1 {
+    root * /usr/share/caddy
     
-#     # API 
-#     handle /api/* {
-#         reverse_proxy django:8000
-#     }
+    # API 
+    handle /api/* {
+        reverse_proxy django:8000
+    }
     
-#     # Auth
-#     handle /auth/* {
-#         reverse_proxy django:8000
-#     }
+    # Auth
+    handle /auth/* {
+        reverse_proxy django:8000
+    }
     
-#     # WebSocket 
-#     handle /ws/* {
-#         reverse_proxy django:8000
-#     }
+    # WebSocket 
+    handle /ws/* {
+        reverse_proxy django:8000
+    }
 
-#     handle /ws/* {
-#         reverse_proxy django:8000 {
-#             transport http {
-#                 keepalive 30s
-#                 keepalive_idle_conns 100
-#                 keepalive_idle_conns_per_host 100
-#             }
-#         }
-#     }
+    handle /ws/* {
+        reverse_proxy django:8000 {
+            transport http {
+                keepalive 30s
+                keepalive_idle_conns 100
+                keepalive_idle_conns_per_host 100
+            }
+        }
+    }
     
-#     # Vue SPA
-#     handle {
-#         try_files {path} /index.html
-#         file_server
-#     }
+    # Vue SPA
+    handle {
+        try_files {path} /index.html
+        file_server
+    }
     
-#     log {
-#         output stdout
-#         format console
-#     }
-# }
-
-# Production — HTTPS ( SSL Let's Encrypt)
-hub959.ru, www.hub959.ru, 109.68.212.60 {  # USE your domain or ip
-   root * /usr/share/caddy
-    
-#    API 
-   handle /api/* {
-       reverse_proxy django:8000
-   }
-    
-#    Auth
-   handle /auth/* {
-       reverse_proxy django:8000
-   }
-    
-#    WebSocket — with keepalive 
-   handle /ws/* {
-       reverse_proxy django:8000 {
-           transport http {
-               keepalive 30s
-               keepalive_idle_conns 100
-               keepalive_idle_conns_per_host 100
-           }
-       }
-   }
-    
-# Vue SPA
-   handle {
-       try_files {path} /index.html
-       file_server
-   }
-    
-   log {
-       output stdout
-       format console
-   }
+    log {
+        output stdout
+        format console
+    }
 }
+
+# # Production SETTING — HTTPS ( SSL Let's Encrypt)
+# hub959.ru, www.hub959.ru, 109.68.212.60 {  # USE your domain or ip
+#    root * /usr/share/caddy
+    
+# #    API 
+#    handle /api/* {
+#        reverse_proxy django:8000
+#    }
+    
+# #    Auth
+#    handle /auth/* {
+#        reverse_proxy django:8000
+#    }
+    
+# #    WebSocket — with keepalive 
+#    handle /ws/* {
+#        reverse_proxy django:8000 {
+#            transport http {
+#                keepalive 30s
+#                keepalive_idle_conns 100
+#                keepalive_idle_conns_per_host 100
+#            }
+#        }
+#    }
+    
+# # Vue SPA
+#    handle {
+#        try_files {path} /index.html
+#        file_server
+#    }
+    
+#    log {
+#        output stdout
+#        format console
+#    }
+# }

@@ -10,6 +10,7 @@
 Online real-time web-chat with unique session-id.
 Every chat has unique URI. Only users with chat-link can be added there.<br>
 **[Demo - video](https://disk.yandex.ru/d/_Kq9fHMiT8TzRw)**<br>
+**[Demo - video2](https://drive.google.com/file/d/1Ssb6XOxeqUHPCnuIesRQODBbRAAYpFI8/view?usp=drive_link)**
 **Stack:**
 - Djoser-auth + Token
 - Chats, users and messages REST API
